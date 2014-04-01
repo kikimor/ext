@@ -24,11 +24,11 @@ class MySQLDateTimeBehavior extends CActiveRecordBehavior
 	 * @param CEvent $event
 	 */
 	public function afterFind($event)
-    {
-        foreach ($event->sender->tableSchema->columns as $columnName => $column){
-            if ($column->dbType != 'date' and $column->dbType != 'datetime') continue;
+	{
+		foreach ($event->sender->tableSchema->columns as $columnName => $column) {
+			if ($column->dbType != 'date' and $column->dbType != 'datetime') continue;
 
-            if (($timestamp = strtotime($event->sender->$columnName)) !== false) {
+			if (($timestamp = strtotime($event->sender->$columnName)) !== false) {
 				switch ($column->dbType) {
 					case 'date':
 						$event->sender->$columnName = date($this->dateFormat, $timestamp);
@@ -38,20 +38,22 @@ class MySQLDateTimeBehavior extends CActiveRecordBehavior
 						break;
 				}
 			}
-        }
-    }
+		}
+	}
 
 	/**
 	 * @param CModelEvent $event
 	 */
 	public function beforeSave($event)
-    {
-        foreach ($event->sender->tableSchema->columns as $columnName => $column){
-            if ($column->dbType != 'date' and $column->dbType != 'datetime') continue;
+	{
+		foreach ($event->sender->tableSchema->columns as $columnName => $column) {
+			if ($column->dbType != 'date' and $column->dbType != 'datetime') continue;
 
 			if (($timestamp = strtotime($event->sender->$columnName)) !== false) {
 				$event->sender->$columnName = new CDbExpression('STR_TO_DATE(:date, "%d%m%Y%H%i%s")', [':date' => date('dmYHis', $timestamp)]);
+			} elseif ($column->allowNull) {
+				$event->sender->$columnName = new CDbExpression('NULL');
 			}
 		}
-    }
+	}
 }
