@@ -6,7 +6,6 @@
  * Author: kikimor <i@kikimor.ru>
  * Version: 1.0
  * Requires: Yii 1.0.9 version
- * @todo Починить сохранение двух полей date.
  */
 class MySQLDateTimeBehavior extends CActiveRecordBehavior
 {
