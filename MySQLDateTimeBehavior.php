@@ -6,6 +6,7 @@
  * Author: kikimor <i@kikimor.ru>
  * Version: 1.0
  * Requires: Yii 1.0.9 version
+ * @todo Починить сохранение двух полей date.
  */
 class MySQLDateTimeBehavior extends CActiveRecordBehavior
 {
@@ -50,7 +51,8 @@ class MySQLDateTimeBehavior extends CActiveRecordBehavior
 			if ($column->dbType != 'date' and $column->dbType != 'datetime') continue;
 
 			if (($timestamp = strtotime($event->sender->$columnName)) !== false) {
-				$event->sender->$columnName = new CDbExpression('STR_TO_DATE(:date, "%d%m%Y%H%i%s")', [':date' => date('dmYHis', $timestamp)]);
+				$key = ':date' . md5($columnName);
+				$event->sender->$columnName = new CDbExpression('STR_TO_DATE(' . $key . ', "%d%m%Y%H%i%s")', [$key => date('dmYHis', $timestamp)]);
 			} elseif ($column->allowNull) {
 				$event->sender->$columnName = new CDbExpression('NULL');
 			}
