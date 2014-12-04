@@ -4,7 +4,7 @@
  * Automatically converts date and datetime fields between ActiveRecord model and MySQL database.
  *
  * Author: kikimor <i@kikimor.ru>
- * Version: 1.0
+ * Version: 1.1
  * Requires: Yii 1.0.9 version
  */
 class MySQLDateTimeBehavior extends CActiveRecordBehavior
@@ -19,6 +19,10 @@ class MySQLDateTimeBehavior extends CActiveRecordBehavior
 	 * @var string
 	 */
 	public $dateTimeFormat = 'd.m.Y H:i';
+	/*
+	 * Source columns data.
+	 */
+	private $sourceValues;
 
 	/**
 	 * @param CEvent $event
@@ -46,8 +50,10 @@ class MySQLDateTimeBehavior extends CActiveRecordBehavior
 	 */
 	public function beforeSave($event)
 	{
+		$this->sourceValues = [];
 		foreach ($event->sender->tableSchema->columns as $columnName => $column) {
 			if ($column->dbType != 'date' and $column->dbType != 'datetime') continue;
+			$this->sourceValues[$columnName] = $event->sender->$columnName;
 
 			if (($timestamp = strtotime($event->sender->$columnName)) !== false) {
 				$key = ':date' . md5($columnName);
@@ -55,6 +61,17 @@ class MySQLDateTimeBehavior extends CActiveRecordBehavior
 			} elseif ($column->allowNull) {
 				$event->sender->$columnName = new CDbExpression('NULL');
 			}
+		}
+	}
+
+	/**
+	 * @param CModelEvent $event
+	 */
+	public function afterSave($event)
+	{
+		foreach ($event->sender->tableSchema->columns as $columnName => $column) {
+			if ($column->dbType != 'date' and $column->dbType != 'datetime') continue;
+			$event->sender->$columnName = $this->sourceValues[$columnName];
 		}
 	}
 }
