@@ -4,7 +4,7 @@
  * Automatically converts date and datetime fields between ActiveRecord model and MySQL database.
  *
  * Author: kikimor <i@kikimor.ru>
- * Version: 1.1
+ * Version: 1.1.2
  * Requires: Yii 1.0.9 version
  */
 class MySQLDateTimeBehavior extends CActiveRecordBehavior
@@ -57,8 +57,11 @@ class MySQLDateTimeBehavior extends CActiveRecordBehavior
 
 			if (($timestamp = strtotime($event->sender->$columnName)) !== false) {
 				$key = ':date' . md5($columnName);
-				$event->sender->$columnName = new CDbExpression('STR_TO_DATE(' . $key . ', "%d%m%Y%H%i%s")', [$key => date('dmYHis', $timestamp)]);
-			} elseif ($column->allowNull) {
+				$event->sender->$columnName = new CDbExpression(
+					'STR_TO_DATE(' . $key . ', "%d%m%Y%H%i%s")',
+					[$key => date('dmYHis', $timestamp)]
+				);
+			} elseif ($column->allowNull && !is_object($event->sender->$columnName)) {
 				$event->sender->$columnName = new CDbExpression('NULL');
 			}
 		}
